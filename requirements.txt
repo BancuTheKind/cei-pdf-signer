@@ -1,0 +1,9 @@
+Flask>=2.3.0
+flask-cors>=4.0.0
+PyKCS11>=1.5.12
+pyhanko>=0.20.0
+pyhanko[pkcs11]
+cryptography>=41.0.0
+Werkzeug>=2.3.0
+pywebview>=4.0
+py2app>=0.28

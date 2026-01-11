@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# PyInstaller
+*.manifest
+*.spec.bak
+
+# Build artifacts
+*.app/
+
+# Claude Code
+.claude/
+
+# Logs
+*.log
+
+# Local settings
+.env
+.env.local

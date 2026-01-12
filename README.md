@@ -41,15 +41,8 @@ CEI PDF Signer este o aplicatie gratuita si open-source care permite semnarea di
 git clone https://github.com/USERNAME/cei-web-signer.git
 cd cei-web-signer
 
-# Creati environment virtual
-python3 -m venv venv
-source venv/bin/activate
-
-# Instalati dependentele
-pip install -r requirements.txt
-
-# Rulati aplicatia
-python app.py
+# Rulati aplicatia (creeaza venv si instaleaza dependentele automat)
+./run.sh
 ```
 
 Apoi deschideti browserul la `http://localhost:5001`
@@ -57,12 +50,20 @@ Apoi deschideti browserul la `http://localhost:5001`
 ### Compilare aplicatie nativa
 
 ```bash
-source venv/bin/activate
-pip install pyinstaller
-pyinstaller CEIPDFSigner.spec
+# Compileaza aplicatia macOS
+./build.sh
 ```
 
 Aplicatia compilata va fi in `dist/CEI PDF Signer.app`
+
+### Creare release pentru GitHub
+
+```bash
+# Compileaza si creeaza ZIP pentru distribuire
+./build-release.sh
+```
+
+Fisierele pentru release vor fi in folderul `release/`
 
 ## Utilizare
 
@@ -127,7 +128,9 @@ cei-web-signer/
 ├── requirements.txt    # Dependente Python
 ├── CEIPDFSigner.spec   # Config PyInstaller
 ├── icon.icns           # Iconita aplicatie
-└── build.sh            # Script compilare (py2app)
+├── run.sh              # Script pentru rulare locala
+├── build.sh            # Script pentru compilare aplicatie
+└── build-release.sh    # Script pentru creare release GitHub
 ```
 
 ## Tehnologii folosite

@@ -1,27 +1,50 @@
 #!/bin/bash
-# Build script for CEI PDF Signer desktop app
+# Script pentru compilarea aplicatiei CEI PDF Signer
+# Creeaza aplicatia nativa macOS folosind PyInstaller
 
 set -e
 
 cd "$(dirname "$0")"
 
-echo "=== CEI PDF Signer Build Script ==="
+echo "=== CEI PDF Signer - Build Script ==="
 echo ""
 
-# Activate virtual environment
+# Verifica daca exista environment virtual
+if [ ! -d "venv" ]; then
+    echo "Creez environment virtual..."
+    python3 -m venv venv
+fi
+
+# Activeaza environment-ul virtual
 source venv/bin/activate
 
-# Clean previous builds
-echo "Cleaning previous builds..."
+# Instaleaza dependentele daca e nevoie
+if [ ! -f "venv/.deps_installed" ]; then
+    echo "Instalez dependentele..."
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    touch venv/.deps_installed
+fi
+
+# Instaleaza PyInstaller daca nu exista
+if ! command -v pyinstaller &> /dev/null; then
+    echo "Instalez PyInstaller..."
+    pip install pyinstaller
+fi
+
+# Curata build-urile anterioare
+echo "Curata build-urile anterioare..."
 rm -rf build dist
 
-# Build the app
-echo "Building application..."
-python setup.py py2app
+# Compileaza aplicatia
+echo "Compilez aplicatia..."
+pyinstaller CEIPDFSigner.spec
 
 echo ""
-echo "=== Build Complete ==="
-echo "App location: dist/CEI PDF Signer.app"
+echo "=== Build Complet ==="
 echo ""
-echo "To run: open 'dist/CEI PDF Signer.app'"
-echo "To install: cp -r 'dist/CEI PDF Signer.app' /Applications/"
+echo "Aplicatia se afla in: dist/CEI PDF Signer.app"
+echo ""
+echo "Pentru a rula:     open 'dist/CEI PDF Signer.app'"
+echo "Pentru a instala:  cp -r 'dist/CEI PDF Signer.app' /Applications/"
+echo ""

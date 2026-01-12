@@ -34,6 +34,7 @@ env/
 
 # Build artifacts
 *.app/
+release/
 
 # Claude Code
 .claude/

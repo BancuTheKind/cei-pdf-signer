@@ -105,14 +105,31 @@ Setarea este salvata local si persista intre sesiuni.
 - Deschideti Settings si verificati/actualizati calea catre biblioteca PKCS#11
 - Calea implicita este pentru versiunea 2.7.0 - daca aveti alta versiune, actualizati calea
 
-### macOS blocheaza cititorul
-Daca macOS preia controlul asupra cititorului (apare notificare "Smart card detected"):
+### macOS blocheaza cititorul / Aplicatia se blocheaza (hanging)
+
+Daca macOS preia controlul asupra cititorului (apare notificare "Smart card detected") sau aplicatia se blocheaza la pornire cu ecran alb:
+
+**Cauza:** macOS CryptoTokenKit incearca sa foloseasca cititorul simultan cu aplicatia noastra, cauzand o bucla de connect/disconnect.
+
+**Solutie:**
 
 ```bash
+# Dezactiveaza complet smart card-ul in macOS
 sudo defaults write /Library/Preferences/com.apple.security.smartcard allowSmartCard -bool false
+sudo defaults write /Library/Preferences/com.apple.security.smartcard UserPairing -bool false
+sudo defaults write /Library/Preferences/com.apple.security.smartcard useIFDCCID -bool false
+
+# IMPORTANT: Restartati Mac-ul pentru ca setarile sa aiba efect
 ```
 
-Apoi restartati Mac-ul.
+**Dupa restart:**
+- Nu ar trebui sa mai apara notificarea "Smart card detected"
+- Aplicatia ar trebui sa functioneze normal
+
+**Daca aplicatia e blocata si trebuie oprita:**
+```bash
+pkill -9 "CEI PDF Signer"
+```
 
 ### Aplicatia nu porneste
 La prima rulare pe macOS, click dreapta pe aplicatie -> Open, apoi confirmati.

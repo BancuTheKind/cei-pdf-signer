@@ -40,11 +40,14 @@ rm -rf build dist
 echo "Compilez aplicatia..."
 pyinstaller CEIPDFSigner.spec
 
+# Create symlink to Applications for easy drag-and-drop install
+ln -sf /Applications dist/Applications
+
 echo ""
 echo "=== Build Complet ==="
 echo ""
 echo "Aplicatia se afla in: dist/CEI PDF Signer.app"
 echo ""
 echo "Pentru a rula:     open 'dist/CEI PDF Signer.app'"
-echo "Pentru a instala:  cp -r 'dist/CEI PDF Signer.app' /Applications/"
+echo "Pentru a instala:  Drag 'CEI PDF Signer.app' to 'Applications' in dist/"
 echo ""

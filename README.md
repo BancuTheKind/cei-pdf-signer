@@ -1,10 +1,110 @@
 # CEI PDF Signer
 
-Aplicatie pentru semnarea documentelor PDF folosind Cartea de Identitate Electronica (CEI) din Romania.
+**[🌐 Website](https://bancuthekind.github.io/cei-pdf-signer)** | **[📥 Download](https://github.com/BancuTheKind/cei-pdf-signer/releases)**
 
-## Despre
+Free, open-source macOS application for digitally signing PDF documents using the Romanian Electronic Identity Card (CEI).
 
-CEI PDF Signer este o aplicatie gratuita si open-source care permite semnarea digitala a documentelor PDF folosind certificatul calificat de pe Cartea de Identitate Electronica romaneasca. Aplicatia functioneaza pe macOS si foloseste biblioteca PKCS#11 de la IDEMIA.
+---
+
+🇬🇧 **[English](#english)** | 🇷🇴 **[Română](#română)**
+
+---
+
+## English
+
+### About
+
+CEI PDF Signer allows you to digitally sign PDF documents using the qualified certificate from your Romanian Electronic Identity Card. The app runs natively on macOS and uses the PKCS#11 library from IDEMIA.
+
+### Features
+
+- Modern, intuitive web interface
+- Sign multiple PDF documents at once
+- Visual signature placement on each document
+- Support for ECDSA certificates from CEI
+- Automatic smart card reader detection
+- Direct export to Downloads folder
+- Configurable PKCS#11 library path
+
+### Requirements
+
+#### Hardware
+- USB smart card reader
+- Romanian Electronic Identity Card (CEI)
+
+#### Software
+- macOS 10.13 or newer
+- [IDPlugManager](https://www.inteligent.ro/idplugmanager/) - official CEI software (provides the PKCS#11 library)
+
+### Installation
+
+#### Option 1: Pre-built Application (Recommended)
+
+1. Download the latest release from [Releases](../../releases)
+2. Extract and move `CEI PDF Signer.app` to `/Applications`
+3. On first run, right-click → Open (to allow execution)
+
+#### Option 2: From Source
+
+```bash
+git clone https://github.com/BancuTheKind/cei-pdf-signer.git
+cd cei-web-signer
+./run.sh
+```
+
+### Usage
+
+1. **Connect your card reader** and insert your CEI
+2. **Launch the app** - it will automatically detect your card
+3. **Load PDFs** - drag & drop or click to select
+4. **Draw signature area** - click and drag on each document
+5. **Click "Sign Files"** - enter your PIN (6 digits) and wait
+6. **Download** - signed files are saved to Downloads
+
+### PIN Information
+
+- **Signature PIN (6 digits)**: for signing documents (Slot 2)
+- **Authentication PIN (4 digits)**: for online authentication (Slot 0)
+
+### Troubleshooting
+
+#### "No smart card detected"
+- Verify the reader is connected
+- Verify the CEI is properly inserted
+- Reinstall IDPlugManager
+
+#### "PKCS11 library not found"
+- Verify IDPlugManager is installed
+- Open Settings and check/update the PKCS#11 library path
+
+#### macOS blocks the reader / App hangs
+
+If macOS takes control of the reader (shows "Smart card detected" notification) or the app hangs on startup:
+
+**Cause:** macOS CryptoTokenKit tries to use the reader simultaneously.
+
+**Solution:**
+```bash
+sudo defaults write /Library/Preferences/com.apple.security.smartcard allowSmartCard -bool false
+sudo defaults write /Library/Preferences/com.apple.security.smartcard UserPairing -bool false
+sudo defaults write /Library/Preferences/com.apple.security.smartcard useIFDCCID -bool false
+# Restart your Mac for changes to take effect
+```
+
+### Security
+
+- PIN is never stored
+- Communication is local only (localhost)
+- Private key never leaves the smart card
+- Code is open-source for audit
+
+---
+
+## Română
+
+### Despre
+
+CEI PDF Signer permite semnarea digitala a documentelor PDF folosind certificatul calificat de pe Cartea de Identitate Electronica romaneasca. Aplicatia functioneaza pe macOS si foloseste biblioteca PKCS#11 de la IDEMIA.
 
 ### Caracteristici
 
@@ -14,58 +114,35 @@ CEI PDF Signer este o aplicatie gratuita si open-source care permite semnarea di
 - Suport pentru certificatele ECDSA de pe CEI
 - Detectare automata a cititorului de carduri
 - Export direct in folderul Downloads
-- Configurare cale biblioteca PKCS#11 (pentru versiuni diferite de IDPlugManager)
+- Configurare cale biblioteca PKCS#11
 
-## Cerinte
+### Cerinte
 
-### Hardware
+#### Hardware
 - Cititor de carduri smart card (USB)
 - Cartea de Identitate Electronica (CEI) din Romania
 
-### Software
+#### Software
 - macOS 10.13 sau mai nou
 - [IDPlugManager](https://www.inteligent.ro/idplugmanager/) - software-ul oficial pentru CEI (instaleaza biblioteca PKCS#11)
 
-## Instalare
+### Instalare
 
-### Varianta 1: Aplicatie compilata (recomandat)
+#### Varianta 1: Aplicatie compilata (recomandat)
 
 1. Descarcati ultima versiune din [Releases](../../releases)
 2. Dezarhivati si mutati `CEI PDF Signer.app` in `/Applications`
 3. La prima rulare, click dreapta -> Open (pentru a permite rularea)
 
-### Varianta 2: Din sursa
+#### Varianta 2: Din sursa
 
 ```bash
-# Clonati repository-ul
-git clone https://github.com/USERNAME/cei-web-signer.git
+git clone https://github.com/BancuTheKind/cei-pdf-signer.git
 cd cei-web-signer
-
-# Rulati aplicatia (creeaza venv si instaleaza dependentele automat)
 ./run.sh
 ```
 
-Apoi deschideti browserul la `http://localhost:5001`
-
-### Compilare aplicatie nativa
-
-```bash
-# Compileaza aplicatia macOS
-./build.sh
-```
-
-Aplicatia compilata va fi in `dist/CEI PDF Signer.app`
-
-### Creare release pentru GitHub
-
-```bash
-# Compileaza si creeaza ZIP pentru distribuire
-./build-release.sh
-```
-
-Fisierele pentru release vor fi in folderul `release/`
-
-## Utilizare
+### Utilizare
 
 1. **Conectati cititorul de carduri** si introduceti CEI-ul
 2. **Lansati aplicatia** - va detecta automat cardul
@@ -79,105 +156,44 @@ Fisierele pentru release vor fi in folderul `release/`
 - **PIN Semnatura (6 cifre)**: pentru semnarea documentelor (Slot 2)
 - **PIN Autentificare (4 cifre)**: pentru autentificare online (Slot 0)
 
-### Configurare PKCS#11
+### Rezolvarea problemelor
 
-Aplicatia foloseste implicit biblioteca PKCS#11 de la IDEMIA:
-```
-/Library/Application Support/com.idemia.idplug/lib/libidplug-pkcs11.2.7.0.dylib
-```
-
-Daca aveti o versiune diferita de IDPlugManager sau biblioteca se afla in alta locatie:
-1. Click pe iconita **Settings** (rotita) din header
-2. Introduceti calea catre biblioteca PKCS#11
-3. Click **Save**
-
-Setarea este salvata local si persista intre sesiuni.
-
-## Rezolvarea problemelor
-
-### "No smart card detected"
+#### "No smart card detected"
 - Verificati ca cititorul este conectat
 - Verificati ca CEI-ul este introdus corect in cititor
 - Reinstalati IDPlugManager
 
-### "PKCS11 library not found"
+#### "PKCS11 library not found"
 - Verificati ca IDPlugManager este instalat
 - Deschideti Settings si verificati/actualizati calea catre biblioteca PKCS#11
-- Calea implicita este pentru versiunea 2.7.0 - daca aveti alta versiune, actualizati calea
 
-### macOS blocheaza cititorul / Aplicatia se blocheaza (hanging)
+#### macOS blocheaza cititorul / Aplicatia se blocheaza
 
-Daca macOS preia controlul asupra cititorului (apare notificare "Smart card detected") sau aplicatia se blocheaza la pornire cu ecran alb:
+Daca macOS preia controlul asupra cititorului (apare notificare "Smart card detected") sau aplicatia se blocheaza la pornire:
 
-**Cauza:** macOS CryptoTokenKit incearca sa foloseasca cititorul simultan cu aplicatia noastra, cauzand o bucla de connect/disconnect.
+**Cauza:** macOS CryptoTokenKit incearca sa foloseasca cititorul simultan cu aplicatia noastra.
 
 **Solutie:**
-
 ```bash
-# Dezactiveaza complet smart card-ul in macOS
 sudo defaults write /Library/Preferences/com.apple.security.smartcard allowSmartCard -bool false
 sudo defaults write /Library/Preferences/com.apple.security.smartcard UserPairing -bool false
 sudo defaults write /Library/Preferences/com.apple.security.smartcard useIFDCCID -bool false
-
-# IMPORTANT: Restartati Mac-ul pentru ca setarile sa aiba efect
+# Restartati Mac-ul pentru ca setarile sa aiba efect
 ```
 
-**Dupa restart:**
-- Nu ar trebui sa mai apara notificarea "Smart card detected"
-- Aplicatia ar trebui sa functioneze normal
-
-**Daca aplicatia e blocata si trebuie oprita:**
-```bash
-pkill -9 "CEI PDF Signer"
-```
-
-### Aplicatia nu porneste
-La prima rulare pe macOS, click dreapta pe aplicatie -> Open, apoi confirmati.
-
-## Structura proiectului
-
-```
-cei-web-signer/
-├── app.py              # Server Flask + logica semnare
-├── main.py             # Wrapper desktop (PyWebView)
-├── templates/
-│   └── index.html      # Interfata web
-├── requirements.txt    # Dependente Python
-├── CEIPDFSigner.spec   # Config PyInstaller
-├── icon.icns           # Iconita aplicatie
-├── run.sh              # Script pentru rulare locala
-├── build.sh            # Script pentru compilare aplicatie
-└── build-release.sh    # Script pentru creare release GitHub
-```
-
-## Tehnologii folosite
-
-- **Python 3** - limbaj principal
-- **Flask** - server web
-- **PyKCS11** - acces PKCS#11
-- **pyHanko** - semnare PDF
-- **PyWebView** - wrapper desktop nativ
-- **PDF.js** - vizualizare PDF in browser
-
-## Securitate
+### Securitate
 
 - PIN-ul nu este stocat niciodata
 - Comunicatia este doar locala (localhost)
 - Cheia privata nu paraseste niciodata cardul smart
 - Codul este open-source pentru audit
 
-## Licenta
+---
 
-MIT License - vezi [LICENSE](LICENSE)
+## License
 
-## Contributii
-
-Contributiile sunt binevenite! Deschideti un Issue sau Pull Request.
-
-## Disclaimer
-
-Aceasta aplicatie este oferita "as is", fara garantii. Autorul nu este afiliat cu statul roman sau IDEMIA. Folositi pe propria raspundere.
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
-Facut cu drag pentru comunitatea romaneasca.
+Made with ❤️ for the Romanian community

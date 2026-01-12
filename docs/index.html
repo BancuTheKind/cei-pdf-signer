@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEI PDF Signer - Sign PDFs with Romanian Electronic ID</title>
+    <meta name="description" content="Free, open-source application for digitally signing PDF documents using the Romanian Electronic Identity Card (CEI).">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪪</text></svg>">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+            --bg-card: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-hover: #00a8cc;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --gradient: linear-gradient(135deg, #00d4ff 0%, #0066ff 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background effect */
+        .bg-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 102, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .lang-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            padding: 0.25rem;
+            border-radius: 8px;
+        }
+
+        .lang-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+        }
+
+        /* Demo Section */
+        .demo {
+            padding: 4rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-container video {
+            width: 100%;
+            display: block;
+        }
+
+        .demo-caption {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Requirements Section */
+        .requirements {
+            padding: 6rem 2rem;
+            background: var(--bg-secondary);
+        }
+
+        .requirements-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .req-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .req-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .req-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .req-item h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .req-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Install Section */
+        .install {
+            padding: 6rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .install-steps {
+            margin-top: 3rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+        }
+
+        .step-content code {
+            display: block;
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .footer-note .heart {
+            color: #ff6b6b;
+        }
+
+        /* Language switching */
+        [data-lang="ro"] { display: none; }
+        html[lang="ro"] [data-lang="en"] { display: none; }
+        html[lang="ro"] [data-lang="ro"] { display: block; }
+        html[lang="ro"] span[data-lang="ro"],
+        html[lang="ro"] a[data-lang="ro"] { display: inline; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .nav-links a:not(.lang-toggle) {
+                display: none;
+            }
+
+            .hero {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effect"></div>
+
+    <nav>
+        <div class="logo">CEI PDF Signer</div>
+        <div class="nav-links">
+            <a href="#features" data-lang="en">Features</a>
+            <a href="#features" data-lang="ro">Functii</a>
+            <a href="#install" data-lang="en">Install</a>
+            <a href="#install" data-lang="ro">Instalare</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer" target="_blank">GitHub</a>
+            <div class="lang-toggle">
+                <button class="lang-btn active" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" onclick="setLang('ro')">RO</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="badge">
+            <span>🍎</span>
+            <span data-lang="en">macOS App</span>
+            <span data-lang="ro">Aplicatie macOS</span>
+        </div>
+        <h1>CEI PDF Signer</h1>
+        <p data-lang="en">Free, open-source application for digitally signing PDF documents using the Romanian Electronic Identity Card.</p>
+        <p data-lang="ro">Aplicatie gratuita si open-source pentru semnarea digitala a documentelor PDF folosind Cartea de Identitate Electronica din Romania.</p>
+        <div class="cta-buttons">
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/releases" class="btn btn-primary">
+                <span>⬇️</span>
+                <span data-lang="en">Download for macOS</span>
+                <span data-lang="ro">Descarca pentru macOS</span>
+            </a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer" class="btn btn-secondary">
+                <span>📂</span>
+                <span data-lang="en">View Source</span>
+                <span data-lang="ro">Vezi Codul</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="demo">
+        <div class="demo-container">
+            <video autoplay loop muted playsinline>
+                <source src="assets/demo.webm" type="video/webm">
+            </video>
+        </div>
+        <p class="demo-caption" data-lang="en">Sign multiple PDFs in seconds with your CEI card</p>
+        <p class="demo-caption" data-lang="ro">Semneaza mai multe PDF-uri in cateva secunde cu cardul CEI</p>
+    </section>
+
+    <section class="features" id="features">
+        <h2 class="section-title" data-lang="en">Features</h2>
+        <h2 class="section-title" data-lang="ro">Functionalitati</h2>
+        <p class="section-subtitle" data-lang="en">Everything you need to sign documents with your Romanian Electronic ID</p>
+        <p class="section-subtitle" data-lang="ro">Tot ce ai nevoie pentru a semna documente cu Cartea de Identitate Electronica</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3 data-lang="en">Multiple PDFs</h3>
+                <h3 data-lang="ro">PDF-uri Multiple</h3>
+                <p data-lang="en">Sign multiple PDF documents at once with a single PIN entry.</p>
+                <p data-lang="ro">Semneaza mai multe documente PDF deodata cu o singura introducere de PIN.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3 data-lang="en">Visual Placement</h3>
+                <h3 data-lang="ro">Pozitionare Vizuala</h3>
+                <p data-lang="en">Draw exactly where you want your signature to appear on each document.</p>
+                <p data-lang="ro">Deseneaza exact unde vrei sa apara semnatura pe fiecare document.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3 data-lang="en">Secure by Design</h3>
+                <h3 data-lang="ro">Securitate prin Design</h3>
+                <p data-lang="en">Your private key never leaves the smart card. PIN is never stored.</p>
+                <p data-lang="ro">Cheia privata nu paraseste niciodata cardul. PIN-ul nu este stocat.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3 data-lang="en">Auto Detection</h3>
+                <h3 data-lang="ro">Detectare Automata</h3>
+                <p data-lang="en">Automatically detects your smart card reader and CEI card.</p>
+                <p data-lang="ro">Detecteaza automat cititorul de carduri si cardul CEI.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 data-lang="en">Fast & Native</h3>
+                <h3 data-lang="ro">Rapid si Nativ</h3>
+                <p data-lang="en">Native macOS application with modern, intuitive interface.</p>
+                <p data-lang="ro">Aplicatie nativa macOS cu interfata moderna si intuitiva.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🆓</div>
+                <h3 data-lang="en">Free & Open Source</h3>
+                <h3 data-lang="ro">Gratuit si Open Source</h3>
+                <p data-lang="en">100% free. No subscriptions, no hidden costs. Code available for audit.</p>
+                <p data-lang="ro">100% gratuit. Fara abonamente, fara costuri ascunse. Cod disponibil pentru audit.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="requirements">
+        <div class="requirements-content">
+            <h2 class="section-title" data-lang="en">Requirements</h2>
+            <h2 class="section-title" data-lang="ro">Cerinte</h2>
+
+            <div class="req-list">
+                <div class="req-item">
+                    <div class="req-icon">🪪</div>
+                    <div>
+                        <h4 data-lang="en">Romanian CEI Card</h4>
+                        <h4 data-lang="ro">Carte de Identitate Electronica</h4>
+                        <p data-lang="en">The new Romanian Electronic Identity Card with chip</p>
+                        <p data-lang="ro">Noua Carte de Identitate Electronica din Romania cu cip</p>
+                    </div>
+                </div>
+
+                <div class="req-item">
+                    <div class="req-icon">💳</div>
+                    <div>
+                        <h4 data-lang="en">Smart Card Reader</h4>
+                        <h4 data-lang="ro">Cititor de Carduri</h4>
+                        <p data-lang="en">Any USB smart card reader compatible with CEI</p>
+                        <p data-lang="ro">Orice cititor USB de carduri compatibil cu CEI</p>
+                    </div>
+                </div>
+
+                <div class="req-item">
+                    <div class="req-icon">🍎</div>
+                    <div>
+                        <h4>macOS 10.13+</h4>
+                        <p data-lang="en">High Sierra or newer</p>
+                        <p data-lang="ro">High Sierra sau mai nou</p>
+                    </div>
+                </div>
+
+                <div class="req-item">
+                    <div class="req-icon">🔧</div>
+                    <div>
+                        <h4>IDPlugManager</h4>
+                        <p data-lang="en">Official PKCS#11 driver from <a href="https://www.inteligent.ro/idplugmanager/" target="_blank" style="color: var(--accent)">inteligent.ro</a></p>
+                        <p data-lang="ro">Driver PKCS#11 oficial de la <a href="https://www.inteligent.ro/idplugmanager/" target="_blank" style="color: var(--accent)">inteligent.ro</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="install" id="install">
+        <h2 class="section-title" data-lang="en">Installation</h2>
+        <h2 class="section-title" data-lang="ro">Instalare</h2>
+
+        <div class="install-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4 data-lang="en">Install IDPlugManager</h4>
+                    <h4 data-lang="ro">Instaleaza IDPlugManager</h4>
+                    <p data-lang="en">Download and install from <a href="https://www.inteligent.ro/idplugmanager/" target="_blank" style="color: var(--accent)">inteligent.ro</a></p>
+                    <p data-lang="ro">Descarca si instaleaza de pe <a href="https://www.inteligent.ro/idplugmanager/" target="_blank" style="color: var(--accent)">inteligent.ro</a></p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4 data-lang="en">Download CEI PDF Signer</h4>
+                    <h4 data-lang="ro">Descarca CEI PDF Signer</h4>
+                    <p data-lang="en">Get the latest release from GitHub</p>
+                    <p data-lang="ro">Descarca ultima versiune de pe GitHub</p>
+                    <code>
+                        <a href="https://github.com/BancuTheKind/cei-pdf-signer/releases" target="_blank" style="color: var(--accent)">github.com/BancuTheKind/cei-pdf-signer/releases</a>
+                    </code>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4 data-lang="en">Move to Applications</h4>
+                    <h4 data-lang="ro">Muta in Applications</h4>
+                    <p data-lang="en">Extract and drag <code style="display:inline;padding:0.2rem 0.5rem;">CEI PDF Signer.app</code> to your Applications folder</p>
+                    <p data-lang="ro">Extrage si trage <code style="display:inline;padding:0.2rem 0.5rem;">CEI PDF Signer.app</code> in folderul Applications</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4 data-lang="en">First Launch</h4>
+                    <h4 data-lang="ro">Prima Lansare</h4>
+                    <p data-lang="en">Right-click the app and select "Open" to bypass Gatekeeper on first run</p>
+                    <p data-lang="ro">Click dreapta pe aplicatie si selecteaza "Open" pentru a permite rularea la prima lansare</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer" target="_blank">GitHub</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/releases" target="_blank" data-lang="en">Releases</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/releases" target="_blank" data-lang="ro">Versiuni</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/issues" target="_blank" data-lang="en">Report Issue</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/issues" target="_blank" data-lang="ro">Raporteaza Problema</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/blob/main/LICENSE" target="_blank" data-lang="en">MIT License</a>
+            <a href="https://github.com/BancuTheKind/cei-pdf-signer/blob/main/LICENSE" target="_blank" data-lang="ro">Licenta MIT</a>
+        </div>
+        <p class="footer-note" data-lang="en">Made with <span class="heart">❤️</span> for the Romanian community</p>
+        <p class="footer-note" data-lang="ro">Facut cu <span class="heart">❤️</span> pentru comunitatea romaneasca</p>
+    </footer>
+
+    <script>
+        function setLang(lang) {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            });
+            localStorage.setItem('lang', lang);
+        }
+
+        // Load saved language preference
+        const savedLang = localStorage.getItem('lang') ||
+            (navigator.language.startsWith('ro') ? 'ro' : 'en');
+        setLang(savedLang);
+    </script>
+</body>
+</html>

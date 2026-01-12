@@ -651,6 +651,30 @@
             color: #00d4ff;
         }
 
+        .pkcs11-warning {
+            display: none;
+            background: rgba(255, 150, 0, 0.2);
+            border: 1px solid rgba(255, 150, 0, 0.5);
+            color: #ff9600;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.2s;
+        }
+
+        .pkcs11-warning:hover {
+            background: rgba(255, 150, 0, 0.3);
+            border-color: #ff9600;
+        }
+
+        .pkcs11-warning.visible {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .settings-modal {
             display: none;
             position: fixed;
@@ -751,6 +775,9 @@
     <div class="header">
         <h1>CEI PDF Signer</h1>
         <div class="header-status">
+            <span id="pkcs11-warning" class="pkcs11-warning" onclick="openSettings()" title="PKCS#11 library not found - Click to configure">
+                <span>&#9888;</span><span>PKCS#11 not found</span>
+            </span>
             <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;</button>
             <span id="card-status" class="status-badge searching" onclick="detectCard()">
                 <span class="pulse"></span><span>Searching for card...</span>
@@ -962,13 +989,38 @@
                 localStorage.removeItem('pkcs11_path');
             }
             closeSettings();
-            // Re-detect card with new path
+            // Re-check PKCS11 status and detect card with new path
+            checkPkcs11Status();
             detectCard();
         }
 
         function resetSettings() {
             document.getElementById('pkcs11-path').value = DEFAULT_PKCS11_PATH;
         }
+
+        async function checkPkcs11Status() {
+            const warningEl = document.getElementById('pkcs11-warning');
+            try {
+                const pkcs11Path = getPkcs11Path();
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                // Check if the configured path exists
+                // We need to check the actual configured path, not just the default
+                const slotsResponse = await fetch('/api/slots?pkcs11_path=' + encodeURIComponent(pkcs11Path));
+                const slotsData = await slotsResponse.json();
+
+                if (slotsData.error && slotsData.error.includes('not found')) {
+                    warningEl.classList.add('visible');
+                } else {
+                    warningEl.classList.remove('visible');
+                }
+            } catch (e) {
+                // If we can't connect, don't show warning (server might be starting)
+                warningEl.classList.remove('visible');
+            }
+        }
+
         let cardDetectionInterval = null;
         let isDrawing = false;
         let drawStart = null;
@@ -1778,6 +1830,9 @@
                     }
                 })
                 .catch(e => console.error('Cannot connect to server'));
+
+            // Check PKCS#11 library status
+            checkPkcs11Status();
 
             // Start background card detection
             startCardDetection();

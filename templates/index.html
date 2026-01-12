@@ -1536,7 +1536,14 @@
 
             try {
                 const pkcs11Path = getPkcs11Path();
-                const response = await fetch('/api/slots?pkcs11_path=' + encodeURIComponent(pkcs11Path));
+                // Add client-side timeout (10 seconds) in case server hangs
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch('/api/slots?pkcs11_path=' + encodeURIComponent(pkcs11Path), {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
                 const data = await response.json();
 
                 if (data.error && !data.slots) {
@@ -1575,7 +1582,11 @@
 
             } catch (e) {
                 statusEl.className = 'status-badge disconnected';
-                statusEl.innerHTML = '<span>Connection error - Click to retry</span>';
+                if (e.name === 'AbortError') {
+                    statusEl.innerHTML = '<span>Reader timeout - Click to retry</span>';
+                } else {
+                    statusEl.innerHTML = '<span>Connection error - Click to retry</span>';
+                }
                 isDetecting = false;
                 return false;
             }

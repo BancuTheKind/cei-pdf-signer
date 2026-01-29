@@ -9,6 +9,8 @@ import sys
 import base64
 import tempfile
 import hashlib
+import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -71,6 +73,20 @@ def get_pkcs11_lib_path(custom_path=None):
     return os.environ.get('PKCS11_LIB', DEFAULT_PKCS11_LIB)
 
 
+def kill_ctkd():
+    """Kill CryptoTokenKit daemon to release smart card reader.
+    macOS CTK grabs exclusive PC/SC access on card insertion,
+    blocking PKCS#11 access. Killing it forces release."""
+    for proc in ('ctkd', 'ctkahp'):
+        try:
+            subprocess.run(['pkill', '-9', proc],
+                           capture_output=True, timeout=5)
+        except Exception:
+            pass
+    # Give PC/SC a moment to reclaim the reader
+    time.sleep(0.5)
+
+
 @app.route('/')
 def index():
     """Main page"""
@@ -101,40 +117,48 @@ def api_slots():
     if not os.path.exists(lib_path):
         return jsonify({'slots': [], 'error': f'PKCS11 library not found at: {lib_path}'})
 
-    try:
-        lib = PyKCS11.PyKCS11Lib()
-        lib.load(lib_path)
+    last_error = None
+    for attempt in range(2):
+        try:
+            if attempt > 0:
+                # First attempt failed — kill CryptoTokenKit and retry
+                kill_ctkd()
 
-        # Get slots with tokens present (card inserted)
-        slots = lib.getSlotList(tokenPresent=True)
+            lib = PyKCS11.PyKCS11Lib()
+            lib.load(lib_path)
 
-        if not slots:
-            return jsonify({'slots': [], 'error': 'No smart card detected'})
+            # Get slots with tokens present (card inserted)
+            slots = lib.getSlotList(tokenPresent=True)
 
-        slot_info = []
-        for slot_id in slots:
-            try:
-                token_info = lib.getTokenInfo(slot_id)
-                slot_info.append({
-                    'id': slot_id,
-                    'label': token_info.label.strip(),
-                    'model': token_info.model.strip(),
-                    'manufacturer': token_info.manufacturerID.strip(),
-                })
-            except:
-                slot_info.append({
-                    'id': slot_id,
-                    'label': f'Slot {slot_id}',
-                    'model': 'Unknown',
-                    'manufacturer': 'Unknown',
-                })
+            if not slots:
+                return jsonify({'slots': [], 'error': 'No smart card detected'})
 
-        return jsonify({'slots': slot_info})
+            slot_info = []
+            for slot_id in slots:
+                try:
+                    token_info = lib.getTokenInfo(slot_id)
+                    slot_info.append({
+                        'id': slot_id,
+                        'label': token_info.label.strip(),
+                        'model': token_info.model.strip(),
+                        'manufacturer': token_info.manufacturerID.strip(),
+                    })
+                except:
+                    slot_info.append({
+                        'id': slot_id,
+                        'label': f'Slot {slot_id}',
+                        'model': 'Unknown',
+                        'manufacturer': 'Unknown',
+                    })
 
-    except PyKCS11.PyKCS11Error as e:
-        return jsonify({'slots': [], 'error': f'Smart card error: {str(e)}'})
-    except Exception as e:
-        return jsonify({'slots': [], 'error': f'Error: {str(e)}'})
+            return jsonify({'slots': slot_info})
+
+        except PyKCS11.PyKCS11Error as e:
+            last_error = f'Smart card error: {str(e)}'
+        except Exception as e:
+            last_error = f'Error: {str(e)}'
+
+    return jsonify({'slots': [], 'error': last_error})
 
 
 @app.route('/api/certificate', methods=['POST'])
